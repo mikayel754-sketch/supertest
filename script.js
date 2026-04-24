@@ -17,15 +17,15 @@ const player = {
     y: mapSize.height / 2,
     radius: 20,
     color: '#00b5e2',
-    speed: 4,
+    speed: 2,
     nickname: 'Guest'
 };
 
 // Хранилище объектов
 let foods = [];
 let bots = [];
-const botCount = 10; // Количество ботов
-const foodCount = 400;
+const botCount = 50; // Количество ботов
+const foodCount = 1000;
 
 // Инициализация Canvas
 function resize() {
@@ -126,7 +126,7 @@ function update() {
         const dToPlayer = Math.sqrt((player.x - bot.x)**2 + (player.y - bot.y)**2);
         
         // Мы едим бота, если мы больше на 10%
-        if (dToPlayer < player.radius && player.radius > bot.radius * 1.1) {
+        if (dToPlayer < player.radius && player.radius > bot.radius * 1.1 && player.radius < mapSize/4) {
             player.radius += bot.radius * 0.5;
             bot.x = Math.random() * mapSize.width; // Респаун бота
             bot.y = Math.random() * mapSize.height;
