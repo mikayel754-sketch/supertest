@@ -1,12 +1,36 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="ru">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Document</title>
+    <title>Agar.io Clone</title>
+    <link rel="stylesheet" href="style.css">
 </head>
 <body>
-    <button onclick = "func1()">press</button>
-    <script src="main.js"></script>
+
+    <div id="overlay">
+        <div id="main-menu">
+            <h1>Agar.io</h1>
+            <input type="text" id="nickname" placeholder="Введите никнейм" maxlength="15">
+            <button id="start-btn">Играть</button>
+            <p class="controls-hint">
+                Разделение: <b>Пробел</b> | Выброс массы: <b>W</b>
+            </p>
+        </div>
+    </div>
+
+    <div id="leaderboard">
+        <h3>Топ игроков</h3>
+        <ol id="leader-list">
+            </ol>
+    </div>
+
+    <div id="score-node">
+        Счет: <span id="score">0</span>
+    </div>
+
+    <canvas id="gameCanvas"></canvas>
+
+    <script src="script.js"></script>
 </body>
 </html>

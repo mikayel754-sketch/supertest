@@ -1,0 +1,122 @@
+/* Сброс базовых отступов */
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+    font-family: 'Arial', sans-serif;
+}
+
+body, html {
+    width: 100%;
+    height: 100%;
+    overflow: hidden; /* Чтобы не было полос прокрутки */
+    background-color: #f2fbff; /* Цвет фона за пределами игрового поля */
+}
+
+/* Холст на весь экран */
+#gameCanvas {
+    display: block;
+    background-image: 
+        linear-gradient(to right, #e0e0e0 1px, transparent 1px),
+        linear-gradient(to bottom, #e0e0e0 1px, transparent 1px);
+    background-size: 50px 50px; /* Сетка как в оригинале */
+    background-color: #ffffff;
+}
+
+/* Главное меню (оверлей) */
+#overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0, 0, 0, 0.5); /* Затемнение фона */
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 10;
+}
+
+#main-menu {
+    background: white;
+    padding: 30px;
+    border-radius: 10px;
+    text-align: center;
+    box-shadow: 0 0 20px rgba(0,0,0,0.3);
+    min-width: 300px;
+}
+
+#main-menu h1 {
+    font-size: 48px;
+    margin-bottom: 20px;
+    color: #555;
+}
+
+#nickname {
+    width: 100%;
+    padding: 10px;
+    margin-bottom: 15px;
+    border: 1px solid #ddd;
+    border-radius: 5px;
+    font-size: 18px;
+    outline: none;
+}
+
+#start-btn {
+    width: 100%;
+    padding: 12px;
+    background-color: #00b5e2;
+    color: white;
+    border: none;
+    border-radius: 5px;
+    font-size: 20px;
+    cursor: pointer;
+    transition: background 0.2s;
+}
+
+#start-btn:hover {
+    background-color: #008eb3;
+}
+
+.controls-hint {
+    margin-top: 15px;
+    font-size: 14px;
+    color: #888;
+}
+
+/* Таблица лидеров */
+#leaderboard {
+    position: absolute;
+    top: 10px;
+    right: 10px;
+    background: rgba(255, 255, 255, 0.8);
+    padding: 10px;
+    border-radius: 5px;
+    width: 180px;
+    pointer-events: none; /* Чтобы не мешала кликам в игре */
+}
+
+#leaderboard h3 {
+    text-align: center;
+    font-size: 16px;
+    border-bottom: 1px solid #ccc;
+    margin-bottom: 5px;
+}
+
+#leader-list {
+    list-style: none;
+    font-size: 14px;
+}
+
+/* Счет игрока */
+#score-node {
+    position: absolute;
+    bottom: 10px;
+    left: 10px;
+    background: rgba(0, 0, 0, 0.3);
+    color: white;
+    padding: 5px 15px;
+    border-radius: 20px;
+    font-weight: bold;
+    pointer-events: none;
+}
