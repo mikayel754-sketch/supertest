@@ -126,7 +126,7 @@ function update() {
         const dToPlayer = Math.sqrt((player.x - bot.x)**2 + (player.y - bot.y)**2);
         
         // Мы едим бота, если мы больше на 10%
-        if (dToPlayer < player.radius && player.radius > bot.radius * 1.1 && player.radius < mapSize/4) {
+        if (dToPlayer < player.radius && player.radius > bot.radius * 1.1 && player.radius < canvas.height/2) {
             player.radius += bot.radius * 0.5;
             bot.x = Math.random() * mapSize.width; // Респаун бота
             bot.y = Math.random() * mapSize.height;
