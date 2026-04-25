@@ -4,6 +4,9 @@ const scoreElement = document.getElementById('score');
 const startBtn = document.getElementById('start-btn');
 const overlay = document.getElementById('overlay');
 const nicknameInput = document.getElementById('nickname');
+const standartnickname = 'player'
+const maxsize = 250
+
 
 // Настройки игры
 let gameActive = false;
@@ -17,15 +20,15 @@ const player = {
     y: mapSize.height / 2,
     radius: 20,
     color: '#00b5e2',
-    speed: 2,
+    speed: 4,
     nickname: 'Guest'
 };
 
 // Хранилище объектов
 let foods = [];
 let bots = [];
-const botCount = 50; // Количество ботов
-const foodCount = 1000;
+const botCount = 99; // Количество ботов
+const foodCount = 4000;
 
 // Инициализация Canvas
 function resize() {
@@ -54,7 +57,7 @@ function spawnBots() {
             y: Math.random() * mapSize.height,
             radius: Math.random() * 20 + 15,
             color: `hsl(${Math.random() * 360}, 60%, 50%)`,
-            nickname: "Bot " + (i + 1),
+            nickname: "player" + (i + 1),
             // Направление движения (от -1 до 1)
             targetX: Math.random() * mapSize.width,
             targetY: Math.random() * mapSize.height,
@@ -76,7 +79,7 @@ canvas.addEventListener('mousemove', (e) => {
 
 // Запуск игры
 startBtn.addEventListener('click', () => {
-    player.nickname = nicknameInput.value || 'Cell';
+    player.nickname = nicknameInput.value || 'player';
     player.x = Math.random() * mapSize.width;
     player.y = Math.random() * mapSize.height;
     player.radius = 20;
@@ -90,7 +93,25 @@ function update() {
     if (!gameActive) return;
 
 // Логика ботов
-    bots.forEach(bot => {
+    bots.forEach((bot, index) => {
+        bot.radius*=0.99995
+        // Внутри bots.forEach((bot, index) => { ...
+        bots.forEach((otherBot, otherIndex) => {
+            if (index === otherIndex) return; // Не едим самих себя
+        
+            const dx = bot.x - otherBot.x;
+            const dy = bot.y - otherBot.y;
+            const dist = Math.sqrt(dx * dx + dy * dy);
+        
+            // Если бот больше другого на 10% и они соприкоснулись
+            if (dist < bot.radius && bot.radius > otherBot.radius * 1.1) {
+                if (bot.radius<maxsize) bot.radius += otherBot.radius * 0.3; // Забираем часть массы
+                // Респаун съеденного бота в новом месте
+                otherBot.x = Math.random() * mapSize.width;
+                otherBot.y = Math.random() * mapSize.height;
+                otherBot.radius = 20;
+            }
+        });
         // Меняем цель движения время от времени
         if (Date.now() > bot.changeDirTime) {
             bot.targetX = Math.random() * mapSize.width;
@@ -119,6 +140,8 @@ function update() {
                 bot.radius += 0.1;
                 return false;
             }
+                        
+                
             return true;
         });
 
@@ -126,8 +149,10 @@ function update() {
         const dToPlayer = Math.sqrt((player.x - bot.x)**2 + (player.y - bot.y)**2);
         
         // Мы едим бота, если мы больше на 10%
-        if (dToPlayer < player.radius && player.radius > bot.radius * 1.1 && player.radius < canvas.height/2) {
-            player.radius += bot.radius * 0.5;
+        if (dToPlayer < player.radius && player.radius > bot.radius * 1.1) {
+            if (player.radius<maxsize){
+                player.radius += bot.radius * 0.3;
+            }
             bot.x = Math.random() * mapSize.width; // Респаун бота
             bot.y = Math.random() * mapSize.height;
             bot.radius = 20;
@@ -136,6 +161,9 @@ function update() {
         else if (dToPlayer < bot.radius && bot.radius > player.radius * 1.1) {
             gameActive = false;
             overlay.style.display = 'flex';
+            //bot.x = Math.random() * mapSize.width;
+            //bot.y = Math.random() * mapSize.height;
+            //bot.radius = 20;
             alert("Вас съел " + bot.nickname);
         }
     });
@@ -162,6 +190,9 @@ function update() {
 
     // Проверка поедания еды
     foods = foods.filter(f => {
+        if (player.radius>maxsize){
+            player.radius = maxsize
+        }
         const dist = Math.sqrt((player.x - f.x) ** 2 + (player.y - f.y) ** 2);
         if (dist < player.radius) {
             player.radius += 0.2; // Рост
