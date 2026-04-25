@@ -94,7 +94,7 @@ function update() {
 
 // Логика ботов
     bots.forEach((bot, index) => {
-        bot.radius*=0.99995
+        bot.radius*=0.9999
         // Внутри bots.forEach((bot, index) => { ...
         bots.forEach((otherBot, otherIndex) => {
             if (index === otherIndex) return; // Не едим самих себя
