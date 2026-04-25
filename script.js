@@ -9,13 +9,17 @@ const overlay = document.getElementById('overlay');
 const nicknameInput = document.getElementById('nickname');
 const standartnickname = 'player'
 const maxsize = 250
-
-
+//let leaderboard = document.getElementById('leader-board')
+//leaderboard.innerHTML='';
 // Настройки игры
 let gameActive = false;
 let score = 0;
 const mapSize = { width: 3000, height: 3000 };
 let viewPort = { x: 0, y: 0 };
+function about(){
+    window.open(URL = "https://youtube.com/shorts/UCla3mBkUTw?si=RuED2k2avhuqBs6J");//url
+}
+
 
 // Данные игрока
 const player = {
@@ -31,7 +35,7 @@ const player = {
 let foods = [];
 let bots = [];
 const botCount = 99; // Количество ботов
-const foodCount = 4000;
+const foodCount = 10000;
 
 // Инициализация Canvas
 function resize() {
@@ -92,10 +96,33 @@ startBtn.addEventListener('click', () => {
     gameActive = true;
 });
 
-
-
+let counter = 0
+//let leaderlist = Array(bots)[0];
+//leaderlist[leaderlist.length] = player;
 function update() {
-    if (!gameActive) return;
+    if (!gameActive){
+        return;
+    } 
+    //if (counter>=100){
+    //    counter = 0;
+    //    //appending
+    //    for (let i = 0; i<leaderlist.length; i++){
+    //        for (let i2 = 0; i2<leaderlist.length-1; i2++){
+    //            if (leaderlist[i2].radius<=leaderlist[i2+1].radius){
+    //                continue;
+    //            } else {
+    //                var el = leaderlist[i2];
+    //                leaderlist[i2] = leaderlist[i2+1];
+    //                leaderlist[i2+1] = el;
+    //            }
+    //        }
+    //    }
+    //    for (let nick = 0; nick<leaderlist.length; i++){
+    //        leaderboard.innerHTML+=leaderlist[nick].nickname+'\n';
+    //    }
+    //} else counter += 1; 
+
+
 
     // Плавное изменение зума в зависимости от радиуса игрока
     let targetZoom = 50 / player.radius; 
@@ -112,8 +139,8 @@ function update() {
             const dy = bot.y - otherBot.y;
             const dist = Math.sqrt(dx * dx + dy * dy);
         
-            // Если бот больше другого на 10% и они соприкоснулись
-            if (dist < bot.radius && bot.radius > otherBot.radius * 1.1) {
+            // Если бот больше другого на 5% и они соприкоснулись
+            if (dist < bot.radius && bot.radius > otherBot.radius * 1.05) {
                 bot.radius += otherBot.radius * 0.3; // Забираем часть массы
                 // Респаун съеденного бота в новом месте
                 otherBot.x = Math.random() * mapSize.width;
@@ -122,7 +149,7 @@ function update() {
             }
         });
         // Потеря массы (Decay) - чем больше бот, тем быстрее худеет
-        if (bot.radius > 20) bot.radius -= bot.radius * 0.0005;
+        if (bot.radius > player.radius*1.1) bot.radius -= bot.radius * 0.005;
 
         // Оптимизированная проверка столкновений ботов
         // Проверяем только с каждым вторым ботом для экономии ресурсов
