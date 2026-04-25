@@ -1,3 +1,6 @@
+// Добавь переменную масштаба в начало файла
+let zoom = 5;
+
 const canvas = document.getElementById('gameCanvas');
 const ctx = canvas.getContext('2d');
 const scoreElement = document.getElementById('score');
@@ -20,7 +23,7 @@ const player = {
     y: mapSize.height / 2,
     radius: 20,
     color: '#00b5e2',
-    speed: 4,
+    speed: 1,
     nickname: 'Guest'
 };
 
@@ -89,12 +92,18 @@ startBtn.addEventListener('click', () => {
     gameActive = true;
 });
 
+
+
 function update() {
     if (!gameActive) return;
 
-// Логика ботов
+    // Плавное изменение зума в зависимости от радиуса игрока
+    let targetZoom = 50 / player.radius; 
+    if (targetZoom < 0.5) targetZoom = 0.5; // Не отдалять слишком сильно
+    zoom += (targetZoom - zoom) * 0.1; // Плавность перехода
+
+    // Логика ботов
     bots.forEach((bot, index) => {
-        bot.radius*=0.9999
         // Внутри bots.forEach((bot, index) => { ...
         bots.forEach((otherBot, otherIndex) => {
             if (index === otherIndex) return; // Не едим самих себя
@@ -105,14 +114,40 @@ function update() {
         
             // Если бот больше другого на 10% и они соприкоснулись
             if (dist < bot.radius && bot.radius > otherBot.radius * 1.1) {
-                if (bot.radius<maxsize) bot.radius += otherBot.radius * 0.3; // Забираем часть массы
+                bot.radius += otherBot.radius * 0.3; // Забираем часть массы
                 // Респаун съеденного бота в новом месте
                 otherBot.x = Math.random() * mapSize.width;
                 otherBot.y = Math.random() * mapSize.height;
                 otherBot.radius = 20;
             }
         });
-        // Меняем цель движения время от времени
+        // Потеря массы (Decay) - чем больше бот, тем быстрее худеет
+        if (bot.radius > 20) bot.radius -= bot.radius * 0.0001;
+
+        // Оптимизированная проверка столкновений ботов
+        // Проверяем только с каждым вторым ботом для экономии ресурсов
+        for (let i = index + 1; i < bots.length; i++) {
+            let otherBot = bots[i];
+            const dx = bot.x - otherBot.x;
+            const dy = bot.y - otherBot.y;
+            const dist = Math.sqrt(dx * dx + dy * dy);
+
+            if (dist < Math.max(bot.radius, otherBot.radius)) {
+                if (bot.radius > otherBot.radius * 1.1 && bot.radius < maxsize) {
+                    bot.radius += otherBot.radius * 0.2;
+                    otherBot.x = Math.random() * mapSize.width;
+                    otherBot.y = Math.random() * mapSize.height;
+                    otherBot.radius = 20;
+                } else if (otherBot.radius > bot.radius * 1.1 && otherBot.radius < maxsize) {
+                    otherBot.radius += bot.radius * 0.2;
+                    bot.x = Math.random() * mapSize.width;
+                    bot.y = Math.random() * mapSize.height;
+                    bot.radius = 20;
+                }
+            }
+        }
+
+        // Движение ботов
         if (Date.now() > bot.changeDirTime) {
             bot.targetX = Math.random() * mapSize.width;
             bot.targetY = Math.random() * mapSize.height;
@@ -124,78 +159,62 @@ function update() {
         const dist = Math.sqrt(dx * dx + dy * dy);
 
         if (dist > 5) {
-            const botSpeed = Math.max(0.5, 3 - (bot.radius / 100));
+            const botSpeed = Math.max(0.8, 3.5 - (bot.radius / 80));
             bot.x += (dx / dist) * botSpeed;
             bot.y += (dy / dist) * botSpeed;
         }
 
-        // Ограничение границами
         bot.x = Math.max(bot.radius, Math.min(mapSize.width - bot.radius, bot.x));
         bot.y = Math.max(bot.radius, Math.min(mapSize.height - bot.radius, bot.y));
 
-        // Боты едят еду
-        foods = foods.filter(f => {
-            const d = Math.sqrt((bot.x - f.x)**2 + (bot.y - f.y)**2);
-            if (d < bot.radius) {
-                bot.radius += 0.1;
-                return false;
-            }
-                        
-                
-            return true;
-        });
+        // Поедание еды ботами (делаем реже для оптимизации)
+        if (index % 2 === 0) { // Каждый второй кадр для каждого бота
+            foods.forEach((f, fIndex) => {
+                const d = Math.sqrt((bot.x - f.x)**2 + (bot.y - f.y)**2);
+                if (d < bot.radius) {
+                    if (bot.radius < maxsize) bot.radius += 0.1;
+                    foods.splice(fIndex, 1);
+                }
+            });
+        }
 
-        // Игрок ест бота (или бот игрока)
+        // Взаимодействие игрока с ботами
         const dToPlayer = Math.sqrt((player.x - bot.x)**2 + (player.y - bot.y)**2);
-        
-        // Мы едим бота, если мы больше на 10%
         if (dToPlayer < player.radius && player.radius > bot.radius * 1.1) {
-            if (player.radius<maxsize){
-                player.radius += bot.radius * 0.3;
-            }
-            bot.x = Math.random() * mapSize.width; // Респаун бота
+            if (player.radius < maxsize) player.radius += bot.radius * 0.2;
+            bot.x = Math.random() * mapSize.width;
             bot.y = Math.random() * mapSize.height;
             bot.radius = 20;
-        } 
-        // Бот ест нас
-        else if (dToPlayer < bot.radius && bot.radius > player.radius * 1.1) {
+            score += 10;
+        } else if (dToPlayer < bot.radius && bot.radius > player.radius * 1.1) {
             gameActive = false;
             overlay.style.display = 'flex';
-            //bot.x = Math.random() * mapSize.width;
-            //bot.y = Math.random() * mapSize.height;
-            //bot.radius = 20;
             alert("Вас съел " + bot.nickname);
         }
     });
 
-    // Рассчитываем направление к мыши
+    // Движение игрока
     const dx = mouse.x - canvas.width / 2;
     const dy = mouse.y - canvas.height / 2;
     const distance = Math.sqrt(dx * dx + dy * dy);
+    const currentSpeed = Math.max(1.2, 4.5 - (player.radius / 70));
 
-    // Движение (скорость падает с ростом массы)
-    const currentSpeed = Math.max(1, player.speed - (player.radius / 100));
     if (distance > 5) {
         player.x += (dx / distance) * currentSpeed;
         player.y += (dy / distance) * currentSpeed;
     }
 
-    // Ограничение границами карты
     player.x = Math.max(player.radius, Math.min(mapSize.width - player.radius, player.x));
     player.y = Math.max(player.radius, Math.min(mapSize.height - player.radius, player.y));
 
-    // Камера центрируется на игроке
-    viewPort.x = player.x - canvas.width / 2;
-    viewPort.y = player.y - canvas.height / 2;
+    viewPort.x = player.x - (canvas.width / 2) / zoom;
+    viewPort.y = player.y - (canvas.height / 2) / zoom;
 
-    // Проверка поедания еды
+    // Поедание еды игроком
     foods = foods.filter(f => {
-        if (player.radius>maxsize){
-            player.radius = maxsize
-        }
         const dist = Math.sqrt((player.x - f.x) ** 2 + (player.y - f.y) ** 2);
         if (dist < player.radius) {
-            player.radius += 0.2; // Рост
+            if (player.radius < maxsize) player.radius += 0.1;
             score += 1;
             scoreElement.innerText = Math.floor(score);
             return false;
@@ -203,14 +222,8 @@ function update() {
         return true;
     });
 
-    // Респаун еды
     if (foods.length < foodCount) {
-        foods.push({
-            x: Math.random() * mapSize.width,
-            y: Math.random() * mapSize.height,
-            radius: 5,
-            color: `hsl(${Math.random() * 360}, 70%, 60%)`
-        });
+        spawnFood(); // Респаун пачками для оптимизации
     }
 }
 
@@ -218,21 +231,27 @@ function draw() {
     ctx.clearRect(0, 0, canvas.width, canvas.height);
 
     ctx.save();
-    // Сдвигаем контекст рисования под "камеру"
+    // Применяем зум
+    ctx.scale(zoom, zoom);
     ctx.translate(-viewPort.x, -viewPort.y);
 
-    // Рисуем сетку (на заднем плане)
+    // Рисуем границы карты
+    ctx.strokeStyle = '#ccc';
+    ctx.lineWidth = 10;
+    ctx.strokeRect(0, 0, mapSize.width, mapSize.height);
+
+    // Сетка
     ctx.beginPath();
-    for (let x = 0; x <= mapSize.width; x += 50) {
+    ctx.strokeStyle = '#eee';
+    ctx.lineWidth = 1;
+    for (let x = 0; x <= mapSize.width; x += 100) {
         ctx.moveTo(x, 0); ctx.lineTo(x, mapSize.height);
     }
-    for (let y = 0; y <= mapSize.height; y += 50) {
+    for (let y = 0; y <= mapSize.height; y += 100) {
         ctx.moveTo(0, y); ctx.lineTo(mapSize.width, y);
     }
-    ctx.strokeStyle = '#eee';
     ctx.stroke();
 
-    // Рисуем еду
     foods.forEach(f => {
         ctx.beginPath();
         ctx.arc(f.x, f.y, f.radius, 0, Math.PI * 2);
@@ -240,45 +259,36 @@ function draw() {
         ctx.fill();
     });
 
-
-// Рисуем ботов
     bots.forEach(bot => {
         ctx.beginPath();
         ctx.arc(bot.x, bot.y, bot.radius, 0, Math.PI * 2);
         ctx.fillStyle = bot.color;
         ctx.fill();
-        ctx.strokeStyle = 'rgba(0,0,0,0.2)';
-        ctx.stroke();
-
         ctx.fillStyle = 'white';
-        ctx.font = `${Math.max(10, bot.radius / 2)}px Arial`;
+        ctx.font = `${bot.radius / 2}px Arial`;
         ctx.textAlign = 'center';
-        ctx.fillText(bot.nickname, bot.x, bot.y + 5);
+        ctx.fillText(bot.nickname, bot.x, bot.y + bot.radius/6);
     });
 
-
-    // Рисуем игрока
     ctx.beginPath();
     ctx.arc(player.x, player.y, player.radius, 0, Math.PI * 2);
     ctx.fillStyle = player.color;
     ctx.fill();
     ctx.strokeStyle = '#008eb3';
-    ctx.lineWidth = 3;
+    ctx.lineWidth = 2;
     ctx.stroke();
 
-    // Никнейм
     ctx.fillStyle = 'white';
-    ctx.font = `${Math.max(10, player.radius / 2)}px Arial`;
+    ctx.font = `${player.radius / 2}px Arial`;
     ctx.textAlign = 'center';
-    ctx.fillText(player.nickname, player.x, player.y + 5);
+    ctx.fillText(player.nickname, player.x, player.y + player.radius/6);
 
     ctx.restore();
 
-    requestAnimationFrame(() => {
-        update();
-        draw();
-    });
+    requestAnimationFrame(draw);
 }
+// Вызов update вынесем отдельно или оставим в requestAnimationFrame
+setInterval(update, 1000/60);
 
 // Поехали!
 spawnFood();
