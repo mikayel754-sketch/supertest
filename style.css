@@ -13,16 +13,15 @@ body, html {
     background-color: #f2fbff; /* Цвет фона за пределами игрового поля */
 }
 
-/* Холст на весь экран */
-#gameCanvas {
-    display: block;
-    background-image: 
-        linear-gradient(to right, #e0e0e0 1px, transparent 1px),
-        linear-gradient(to bottom, #e0e0e0 1px, transparent 1px);
-    background-size: 50px 50px; /* Сетка как в оригинале */
-    background-color: #ffffff;
-}
-
+/* Холст на весь экран 
+/*#gameCanvas {
+/*    display: block;
+/*    background-image: 
+/*        linear-gradient(to right, #e0e0e0 1px, transparent 1px),
+/*        linear-gradient(to bottom, #e0e0e0 1px, transparent 1px);
+/*    background-size: 50px 50px; /* Сетка как в оригинале */
+/*    background-color: #ffffff;
+/*}
 /* Главное меню (оверлей) */
 #overlay {
     position: fixed;
